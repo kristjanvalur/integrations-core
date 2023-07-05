@@ -1,6 +1,6 @@
 # CHANGELOG - Datadog-Cluster-Agent
 
-## 2.6.1 / 2023-05-26
+## 2.6.1 / 2023-05-26 / Agent 7.46.0
 
 ***Fixed***: 
 

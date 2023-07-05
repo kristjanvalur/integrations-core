@@ -1,6 +1,6 @@
 # CHANGELOG - Avi Vantage
 
-## 3.3.0 / 2023-05-26
+## 3.3.0 / 2023-05-26 / Agent 7.46.0
 
 ***Added***: 
 

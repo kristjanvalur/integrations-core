@@ -1,6 +1,6 @@
 # CHANGELOG - Kube_apiserver_metrics
 
-## 3.6.1 / 2023-06-14
+## 3.6.1 / 2023-06-14 / Agent 7.46.0
 
 ***Fixed***: 
 

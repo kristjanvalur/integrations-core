@@ -1,6 +1,6 @@
 # CHANGELOG - Azure IoT Edge
 
-## 3.3.1 / 2023-05-26
+## 3.3.1 / 2023-05-26 / Agent 7.46.0
 
 ***Fixed***: 
 

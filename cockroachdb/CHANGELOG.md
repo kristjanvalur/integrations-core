@@ -1,6 +1,6 @@
 # CHANGELOG - CockroachDB
 
-## 2.7.0 / 2023-05-26
+## 2.7.0 / 2023-05-26 / Agent 7.46.0
 
 ***Added***: 
 

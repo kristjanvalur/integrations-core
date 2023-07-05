@@ -1,6 +1,6 @@
 # CHANGELOG - kubernetes_state
 
-## 7.4.3 / 2023-05-26
+## 7.4.3 / 2023-05-26 / Agent 7.46.0
 
 ***Fixed***: 
 

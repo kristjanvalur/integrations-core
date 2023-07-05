@@ -1,6 +1,6 @@
 # CHANGELOG - gitlab_runner
 
-## 3.3.3 / 2023-05-26
+## 3.3.3 / 2023-05-26 / Agent 7.46.0
 
 ***Fixed***: 
 
