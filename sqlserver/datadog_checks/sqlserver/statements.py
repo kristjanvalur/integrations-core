@@ -21,7 +21,7 @@ from datadog_checks.base.utils.db.utils import (
 )
 from datadog_checks.base.utils.serialization import json
 from datadog_checks.base.utils.tracking import tracked_method
-from datadog_checks.sqlserver.utils import is_statement_proc
+from datadog_checks.sqlserver.utils import PROC_CHAR_LIMIT, extract_sql_comments, is_statement_proc
 
 try:
     import datadog_agent
@@ -71,12 +71,25 @@ qstats_aggr as (
     {query_metrics_column_sums}
     from qstats S
     left join sys.databases D on S.dbid = D.database_id
+<<<<<<< HEAD
     group by query_hash, query_plan_hash, S.dbid, D.name
 ),
 qstats_aggr_split as (select TOP {limit}
     convert(varbinary(64), substring(plan_handle_and_offsets, 1, 64)) as plan_handle,
     convert(int, convert(varbinary(4), substring(plan_handle_and_offsets, 64+1, 4))) as statement_start_offset,
     convert(int, convert(varbinary(4), substring(plan_handle_and_offsets, 64+6, 4))) as statement_end_offset,
+=======
+<<<<<<< HEAD
+    left join sys.sysusers U on S.user_id = U.uid
+    group by text, query_hash, query_plan_hash, S.dbid, D.name, U.name
+=======
+    group by query_hash, query_plan_hash, S.dbid, D.name
+),
+qstats_aggr_split as (select TOP {limit}
+    convert(varbinary(64), convert(binary(64), substring(plan_handle_and_offsets, 1, 64), 1)) as plan_handle,
+    convert(int, convert(varbinary(10), substring(plan_handle_and_offsets, 64+1, 10), 1)) as statement_start_offset,
+    convert(int, convert(varbinary(10), substring(plan_handle_and_offsets, 64+11, 10), 1)) as statement_end_offset,
+>>>>>>> ffa356e5e6 (Do not fetch the full procedure_text in the SQLServer Qstats query (#15105))
     * from qstats_aggr
     where DATEADD(ms, last_elapsed_time / 1000, last_execution_time) > dateadd(second, -?, getdate())
 )
@@ -86,9 +99,15 @@ select
         WHEN -1 THEN DATALENGTH(text)
         ELSE statement_end_offset END
             - statement_start_offset) / 2) + 1) AS statement_text,
+<<<<<<< HEAD
     qt.text,
     encrypted as is_encrypted,
     * from qstats_aggr_split
+=======
+    SUBSTRING(qt.text, 1, {proc_char_limit}) as text,
+    encrypted as is_encrypted,
+    s.* from qstats_aggr_split s
+>>>>>>> ffa356e5e6 (Do not fetch the full procedure_text in the SQLServer Qstats query (#15105))
     cross apply sys.dm_exec_sql_text(plan_handle) qt
 """
 
@@ -98,18 +117,30 @@ STATEMENT_METRICS_QUERY_NO_AGGREGATES = """\
 with qstats_aggr as (
     select TOP {limit} query_hash, query_plan_hash,
         max(CONCAT(
+<<<<<<< HEAD
             CONVERT(binary(64), plan_handle),
             CONVERT(binary(4), statement_start_offset),
             CONVERT(binary(4), statement_end_offset))) as plan_handle_and_offsets,
+=======
+            CONVERT(VARCHAR(64), CONVERT(binary(64), plan_handle), 1),
+            CONVERT(VARCHAR(10), CONVERT(varbinary(4), statement_start_offset), 1),
+            CONVERT(VARCHAR(10), CONVERT(varbinary(4), statement_end_offset), 1))) as plan_handle_and_offsets,
+>>>>>>> ffa356e5e6 (Do not fetch the full procedure_text in the SQLServer Qstats query (#15105))
         {query_metrics_column_sums}
         from sys.dm_exec_query_stats S
         where last_execution_time > dateadd(second, -?, getdate())
         group by query_hash, query_plan_hash
 ),
 qstats_aggr_split as (select
+<<<<<<< HEAD
     convert(varbinary(64), substring(plan_handle_and_offsets, 1, 64)) as plan_handle,
     convert(int, convert(varbinary(4), substring(plan_handle_and_offsets, 64+1, 4))) as statement_start_offset,
     convert(int, convert(varbinary(4), substring(plan_handle_and_offsets, 64+6, 4))) as statement_end_offset,
+=======
+    convert(varbinary(64), convert(binary(64), substring(plan_handle_and_offsets, 1, 64), 1)) as plan_handle,
+    convert(int, convert(varbinary(10), substring(plan_handle_and_offsets, 64+1, 10), 1)) as statement_start_offset,
+    convert(int, convert(varbinary(10), substring(plan_handle_and_offsets, 64+11, 10), 1)) as statement_end_offset,
+>>>>>>> ffa356e5e6 (Do not fetch the full procedure_text in the SQLServer Qstats query (#15105))
     * from qstats_aggr
 )
 select
@@ -118,10 +149,18 @@ select
         WHEN -1 THEN DATALENGTH(text)
         ELSE statement_end_offset
     END - statement_start_offset) / 2) + 1) AS statement_text,
+<<<<<<< HEAD
     qt.text,
     encrypted as is_encrypted,
     * from qstats_aggr_split
     cross apply sys.dm_exec_sql_text(plan_handle) qt
+=======
+    SUBSTRING(qt.text, 1, {proc_char_limit}) as text,
+    encrypted as is_encrypted,
+    s.* from qstats_aggr_split s
+    cross apply sys.dm_exec_sql_text(plan_handle) qt
+>>>>>>> 0da996bdbf (Do not fetch the full procedure_text in the SQLServer Qstats query (#15105))
+>>>>>>> ffa356e5e6 (Do not fetch the full procedure_text in the SQLServer Qstats query (#15105))
 """
 
 PLAN_LOOKUP_QUERY = """\
@@ -262,6 +301,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             query_metrics_column_sums=', '.join(['sum({}) as {}'.format(c, c) for c in available_columns]),
             collection_interval=int(math.ceil(self.collection_interval) * 2),
             limit=self.dm_exec_query_stats_row_limit,
+            proc_char_limit=PROC_CHAR_LIMIT,
         )
         return self._statement_metrics_query
 
